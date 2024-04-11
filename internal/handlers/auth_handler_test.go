@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"bytes"
@@ -6,16 +6,17 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"zaratedev/internal/models"
 )
 
 func TestLoginUser(t *testing.T) {
-	users = make(map[int]User)
-	users = map[int]User{
+	users = make(map[int]models.User)
+	users = map[int]models.User{
 		1: {Username: "user1", Email: "user1@example.com", Phone: "1234567890", Password: "password1"},
 		2: {Username: "user2", Email: "user2@example.com", Phone: "9876543210", Password: "password2"},
 	}
 
-	validCredentials := Credentials{
+	validCredentials := models.Credentials{
 		Username: "user1",
 		Email:    "user1@example.com",
 		Password: "password1",
@@ -27,7 +28,8 @@ func TestLoginUser(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	LoginUser(rr, req)
+	handler := NewAuthHandler(users)
+	handler.Login(rr, req)
 
 	if rr.Code != http.StatusOK {
 		t.Errorf("Expected status 200, but got %d", rr.Code)

@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"bytes"
@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"zaratedev/internal/models"
 )
 
 func TestCreateUser(t *testing.T) {
-	users = make(map[int]User)
-	newUser := User{
+	users = make(map[int]models.User)
+	newUser := models.User{
 		Username: "zaratedev",
 		Email:    "zaratedev@gmail.com",
 		Phone:    "5555555555",
@@ -22,14 +23,15 @@ func TestCreateUser(t *testing.T) {
 	// Crear un ResponseRecorder para capturar la respuesta
 	rr := httptest.NewRecorder()
 
-	CreateUser(rr, req)
+	userHandler := NewUserHandler(users)
+	userHandler.Register(rr, req)
 
 	// Verificar el código de estado de la respuesta
 	if rr.Code != http.StatusOK {
 		t.Errorf("Expected status 200, but got %d", rr.Code)
 	}
 
-	var responseUser User
+	var responseUser models.User
 	err := json.NewDecoder(rr.Body).Decode(&responseUser)
 	if err != nil {
 		t.Errorf("Error decoding response JSON: %v", err)
@@ -81,7 +83,7 @@ func TestValidPassword(t *testing.T) {
 }
 
 func TestExistEmail(t *testing.T) {
-	users = map[int]User{
+	users = map[int]models.User{
 		1: {Username: "user1", Email: "user1@example.com", Phone: "1234567890", Password: "password1"},
 		2: {Username: "user2", Email: "user2@example.com", Phone: "9876543210", Password: "password2"},
 	}
@@ -98,7 +100,7 @@ func TestExistEmail(t *testing.T) {
 }
 
 func TestExistPhone(t *testing.T) {
-	users = map[int]User{
+	users = map[int]models.User{
 		1: {Username: "user1", Email: "user1@example.com", Phone: "1234567890", Password: "password1"},
 		2: {Username: "user2", Email: "user2@example.com", Phone: "9876543210", Password: "password2"},
 	}

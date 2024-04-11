@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -6,12 +6,18 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"zaratedev/internal/models"
 
 	"github.com/dlclark/regexp2"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
-	var newUser User
+var users map[int]models.User
+
+type UserHandler struct{}
+
+// Register maneja las solicitudes para registrar un nuevo usuario
+func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var newUser models.User
 
 	err := json.NewDecoder(r.Body).Decode(&newUser)
 	if err != nil {
@@ -32,49 +38,48 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newUser)
 }
 
-func register(user User) (User, error) {
+func register(user models.User) (models.User, error) {
 	if user.Username == "" {
-		return User{}, errors.New("username is requried")
+		return models.User{}, errors.New("username is requried")
 	}
 
 	if user.Email == "" {
-		return User{}, errors.New("email is requried")
+		return models.User{}, errors.New("email is requried")
 	}
 	if user.Phone == "" {
-		return User{}, errors.New("phone is requried")
+		return models.User{}, errors.New("phone is requried")
 	}
 
 	if user.Password == "" {
-		return User{}, errors.New("password is requried")
+		return models.User{}, errors.New("password is requried")
 	}
 
 	// Valid email
 	if !validEmail(user.Email) {
-		return User{}, errors.New("email not valid")
+		return models.User{}, errors.New("email not valid")
 	}
 
 	// Valid phone
 	if !validPhone(user.Phone) {
-		return User{}, errors.New("phone not valid")
+		return models.User{}, errors.New("phone not valid")
 	}
 
 	// Valid password
 	if !validPassword(user.Password) {
-		return User{}, errors.New("password not valid")
+		return models.User{}, errors.New("password not valid")
 	}
 
 	// Exist email ?
 	if existEmail(user.Email) {
-		return User{}, errors.New("the email already exists")
+		return models.User{}, errors.New("the email already exists")
 	}
 
 	// Exist phone?
 	if existPhone(user.Phone) {
-		return User{}, errors.New("the phone already exists")
+		return models.User{}, errors.New("the phone already exists")
 	}
 
-	id++
-	users[id] = user
+	users[len(users)+1] = user
 
 	return user, nil
 }
@@ -124,4 +129,10 @@ func findUserByPhone(phone string) bool {
 	}
 
 	return false
+}
+
+// NewUserHandler crea una nueva instancia de UserHandler
+func NewUserHandler(userMap map[int]models.User) *UserHandler {
+	users = userMap
+	return &UserHandler{}
 }
